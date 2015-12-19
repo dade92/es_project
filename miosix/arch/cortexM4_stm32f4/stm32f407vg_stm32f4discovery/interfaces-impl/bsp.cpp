@@ -54,10 +54,11 @@ typedef Gpio<GPIOD_BASE,4>  cs43l22reset;
 //
 // Initialization
 //
-
+//Called from stage_2_boot
 void IRQbspInit()
 {
     //Enable all gpios
+    //clock gating pins
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN |
                     RCC_AHB1ENR_GPIOCEN | RCC_AHB1ENR_GPIODEN |
                     RCC_AHB1ENR_GPIOEEN | RCC_AHB1ENR_GPIOHEN;
@@ -76,6 +77,7 @@ void IRQbspInit()
     // audio output chip, so keep it permanently reset to avoid issues
     cs43l22reset::mode(Mode::OUTPUT);
     cs43l22reset::low();
+    //configure serial port
     DefaultConsole::instance().IRQset(intrusive_ref_ptr<Device>(
         new STM32Serial(defaultSerial,defaultSerialSpeed,
         defaultSerialFlowctrl ? STM32Serial::RTSCTS : STM32Serial::NOFLOWCTRL)));

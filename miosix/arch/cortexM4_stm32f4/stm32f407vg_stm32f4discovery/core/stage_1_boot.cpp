@@ -51,7 +51,9 @@ void program_startup()
     unsigned char *edata=&_edata;
     unsigned char *bss_start=&_bss_start;
     unsigned char *bss_end=&_bss_end;
+    //loop that initializes data:copy from flash to ram
     memcpy(data, etext, edata-data);
+    //initializes everything to 0
     memset(bss_start, 0, bss_end-bss_start);
 
 	//Move on to stage 2

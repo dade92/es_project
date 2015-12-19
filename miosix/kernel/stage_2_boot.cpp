@@ -126,6 +126,7 @@ void *mainLoader(void *argv)
 extern "C" void _init()
 {
     if(areInterruptsEnabled()) errorHandler(INTERRUPTS_ENABLED_AT_BOOT);
+    //initializes peripherals
     IRQbspInit();
     //After IRQbspInit() serial port is initialized, so we can use IRQbootlog
     IRQbootlog("Starting Kernel... ");
