@@ -1,6 +1,7 @@
 
 #include "player.h"
 #include "sad_trombone.h"
+#include "la.h"
 
 /*
 	scaricare audacity. 
@@ -20,6 +21,7 @@ int main()
 	//codifica molto semplice, lossy, codifica un 4 bit ogni nota
 	//passa le note
 	ADPCMSound sound(sad_trombone_bin,sad_trombone_bin_len);
+	ADPCMSound la_sound(la_bin,la_bin_len);
 
 	/*
 		instanziare diversi oggetti ognuno con una nota diversa
@@ -29,6 +31,9 @@ int main()
 		generare .h di un suono.
 		modificare 	
 	*/
-	Player player=Player::instance();
-	for(;;) player.play(sound);
+	int i;
+	Player::instance().init();
+	for(i=0;i<10;++i) Player::instance().play(la_sound);
+	Player::instance().stop();
+
 }

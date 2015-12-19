@@ -362,7 +362,52 @@ void Player::play(Sound& sound)
 #else //Assuming stm32f4discovery
 void Player::play(Sound& sound)
 {
+    Lock<Mutex> l(mutex);
+    /*
+    	start play
+    	deve consentire di fare chiamate senza mettere
+    	spazi senza le note
+    */
+	//Start playing
+	sound.rewind();
+    bool first=true;
+	waiting=Thread::getCurrentThread();
+	for(;;)
+	{
+		if(enobuf)
+		{
+			enobuf=false;
+			dmaRefill();
+            if(first)
+            {
+                first=false;
+                cs43l22send(0x02,0x9e);
+            }
+		}
+		//decompressione
+		//buffer contiene un pezzo delle note musicali, la classe sound restituisce un set di punti (=note)
+		if(sound.fillStereoBuffer(getWritableBuffer(),bufferSize)) break;
+		bufferFilled();
+	}
+	
 	/*
+		end of play
+	*/
+    
+}
+#endif
+
+bool Player::isPlaying() const
+{
+	if(mutex.tryLock()==false) return true;
+	mutex.unlock();
+	return false;
+}
+
+Player::Player() {}
+//start routine
+void Player::init() {
+		/*
 		separare in altro pezzo
 	*/
     Lock<Mutex> l(mutex);
@@ -420,39 +465,10 @@ void Player::play(Sound& sound)
     //Leading blank audio, so as to be sure audio is played from the start
     memset(getWritableBuffer(),0,bufferSize*sizeof(unsigned short));
 	bufferFilled();
-    
-    /*
-    	start play
-    	deve consentire di fare chiamate senza mettere
-    	spazi senza le note
-    */
-	//Start playing
-	sound.rewind();
-    bool first=true;
-	waiting=Thread::getCurrentThread();
-	for(;;)
-	{
-		if(enobuf)
-		{
-			enobuf=false;
-			dmaRefill();
-            if(first)
-            {
-                first=false;
-                cs43l22send(0x02,0x9e);
-            }
-		}
-		//decompressione
-		//buffer contiene un pezzo delle note musicali, la classe sound restituisce un set di punti (=note)
-		if(sound.fillStereoBuffer(getWritableBuffer(),bufferSize)) break;
-		bufferFilled();
-	}
-	
-	/*
-		end of play
-	*/
-    
-    /*
+}
+//stop routine 
+void Player::stop() {
+	    /*
     	stop, da separare
     */
     //Trailing blank audio, so as to be sure audio is played to the end
@@ -475,13 +491,3 @@ void Player::play(Sound& sound)
     }
     delete bq;
 }
-#endif
-
-bool Player::isPlaying() const
-{
-	if(mutex.tryLock()==false) return true;
-	mutex.unlock();
-	return false;
-}
-
-Player::Player() {}

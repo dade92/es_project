@@ -149,12 +149,20 @@ public:
 	 * \return true if the resource is busy
 	 */
 	bool isPlaying() const;
+	/**
+	*init the peripheral 
+	*/
+	void init();
+	/**
+	*reset the peripheral
+	*/
+	void stop();
 private:
-	Player();
 	Player(const Player&);
 	Player& operator= (const Player&);
-
+	Player();
 	mutable miosix::Mutex mutex;
+
 };
 
 #endif //PLAYER_H
