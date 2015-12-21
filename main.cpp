@@ -2,6 +2,7 @@
 #include "player.h"
 #include "sad_trombone.h"
 #include "la.h"
+#include"do1.h"
 
 /*
 	scaricare audacity. 
@@ -9,6 +10,7 @@
 	includere l'header creato
 	instanziare una nuova classe ADPCM
 	modificare il metodo play
+	File vanno convertiti da audacity,non so il perchè
 */
 /*
 	note sono forme d'onda. se registro ho l'elenco per punti
@@ -22,7 +24,7 @@ int main()
 	//passa le note
 	ADPCMSound sound(sad_trombone_bin,sad_trombone_bin_len);
 	ADPCMSound la_sound(la_bin,la_bin_len);
-
+	ADPCMSound do_sound(do1_bin,do1_bin_len);
 	/*
 		instanziare diversi oggetti ognuno con una nota diversa
 		e riprodurli 
@@ -33,7 +35,10 @@ int main()
 	*/
 	int i;
 	Player::instance().init();
-	for(i=0;i<10;++i) Player::instance().play(la_sound);
+	for(i=0;i<10;++i) {
+		Player::instance().play(do_sound);
+		Player::instance().play(la_sound);
+	} 
 	Player::instance().stop();
 
 }
