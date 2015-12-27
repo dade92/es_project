@@ -17,9 +17,9 @@
 #include <list>
 #include <stdexcept>
 #include <miosix.h>
-#include "la.h"
-#include"fa1.h"
-#include"do2.h"
+#include"02do2#.h"
+#include"01do2.h"
+#include"08sol2.h"
 /*
 	scaricare audacity. 
 	convertire in un header il wav.istruzioni nel convert.cpp (terraneo l'ha testato con noi).
@@ -35,9 +35,8 @@
 	
 */
 ADPCMSound sound(sad_trombone_bin,sad_trombone_bin_len);
-ADPCMSound la_sound(la_bin,la_bin_len);
-ADPCMSound do_sound(do2_bin,do2_bin_len);
-ADPCMSound fa_sound(fa1_bin,fa1_bin_len);
+ADPCMSound do_sound(__01do2_bin,__01do2_bin_len);
+ADPCMSound dod_sound(__02do2__bin,__02do2__bin_len);
 void play_sound(char c);
 int main()
 {
@@ -47,15 +46,18 @@ int main()
 	/*
 		instanziare diversi oggetti ognuno con una nota diversa
 		e riprodurli 
-	*/
+	*/	
 	/*
 		generare .h di un suono.
 		modificare 	
 	*/
 	int i;
 	Player::instance().init();
-	for(;;) 
-		play_sound(getchar());
+	for(;;) {
+		Player::instance().play(do_sound);
+		Player::instance().play(dod_sound);
+	}
+		
 	Player::instance().stop();
 
 }
@@ -70,13 +72,13 @@ int main()
 void play_sound(char c) {
 	switch(c) {
 		case 'a':
-			Player::instance().play(la_sound);
+		
 			break;
 		case 'c':
-			Player::instance().play(fa_sound);
+			Player::instance().play(do_sound);
 			break;
 		case 'f':
-			Player::instance().play(do_sound);
+		
 			break;
 	}
 }
