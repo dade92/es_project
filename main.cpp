@@ -10,6 +10,7 @@
 #include "player.h"
 #include "sad_trombone.h"
 #include <sys/types.h>
+#include <termios.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <cstdio>
@@ -60,8 +61,14 @@ ADPCMSound si2_sound(__12si2_bin,__12si2_bin_len);
 ADPCMSound do3_sound(__13do3_bin,__13do3_bin_len);
 
 void play_sound(char c);
+void play_something();
 int main()
 {
+	//taskes as input directly without pressing enter
+	struct termios t;
+	tcgetattr(STDIN_FILENO,&t);
+	t.c_lflag &= ~(ISIG | ICANON | ECHO);
+	tcsetattr(STDIN_FILENO,TCSANOW,&t);
 	//codifica molto semplice, lossy, codifica un 4 bit ogni nota
 	//passa le note
 
@@ -85,9 +92,16 @@ int main()
 		Player::instance().play(si2_sound);
 		Player::instance().play(do3_sound);
 	}*/
-	for(;;) play_sound(getchar());
+	for(;;) {
+		getchar();
+		play_something();
+	}
 	Player::instance().stop();
 
+}
+
+void play_something() {
+	Player::instance().play(do2_sound);
 }
 /*
 	simple function that reproduce some notes based
