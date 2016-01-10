@@ -62,6 +62,7 @@ ADPCMSound do3_sound(__13do3_bin,__13do3_bin_len);
 
 void play_sound(char c);
 void play_something();
+void parse_byte(char c);
 int main()
 {
 	//taskes as input directly without pressing enter
@@ -93,11 +94,22 @@ int main()
 		Player::instance().play(do3_sound);
 	}*/
 	for(;;) {
-		getchar();
-		play_something();
+		parse_byte(getchar());
 	}
 	Player::instance().stop();
 
+}
+
+void parse_byte(char c) {
+	if((c & 0b10010000)==0x90) {
+		play_sound(getchar());
+		//skip velocity byte
+		getchar();
+	} else if((c & 0b10000000)==0x80) {
+		//stop sound ???
+		getchar();
+		getchar();
+	}
 }
 
 void play_something() {
@@ -114,28 +126,43 @@ void play_something() {
 /*usage=use the second line of the qwerty:a=do(C). s=re(D). d=mi(E). etc..*/
 void play_sound(char c) {
 	switch(c) {
-		case 'a':
+		case 48:
 			Player::instance().play(do2_sound);
 			break;
-		case 's':
+		case 49:
+			Player::instance().play(do2d_sound);
+			break;
+		case 50:
 			Player::instance().play(re2_sound);
 			break;
-		case 'd':
+		case 51:
+			Player::instance().play(re2d_sound);
+			break;
+		case 52:
 			Player::instance().play(mi2_sound);
 			break;
-		case 'f':
+		case 53:
 			Player::instance().play(fa2_sound);
 			break;
-		case 'g':
+		case 54:
+			Player::instance().play(fa2d_sound);
+			break;
+		case 55:
 			Player::instance().play(sol2_sound);
 			break;
-		case 'h':
+		case 56:
+			Player::instance().play(sol2d_sound);
+			break;
+		case 57:
 			Player::instance().play(la2_sound);
 			break;
-		case 'j':
+		case 58:
+			Player::instance().play(la2d_sound);
+			break;
+		case 59:
 			Player::instance().play(si2_sound);
 			break;
-		case 'k':
+		case 60:
 			Player::instance().play(do3_sound);
 			break;
 	}
