@@ -31,6 +31,10 @@
 #include"11la2#.h"
 #include"12si2.h"
 #include"13do3.h"
+#include"14do3#.h"
+#include"15re3.h"
+#include"16re3#.h"
+#include"no_sound.h"
 /*
 	scaricare audacity. 
 	convertire in un header il wav.istruzioni nel convert.cpp (terraneo l'ha testato con noi).
@@ -59,12 +63,27 @@ ADPCMSound la2_sound(__10la2_bin,__10la2_bin_len);
 ADPCMSound la2d_sound(__11la2__bin,__11la2__bin_len);
 ADPCMSound si2_sound(__12si2_bin,__12si2_bin_len);
 ADPCMSound do3_sound(__13do3_bin,__13do3_bin_len);
+ADPCMSound do3d_sound(__14do3__bin,__14do3__bin_len);
+ADPCMSound re3_sound(__15re3_bin,__15re3_bin_len);
+ADPCMSound re3d_sound(__16re3__bin,__16re3__bin_len);
+ADPCMSound no_sound(no_sound_bin,no_sound_bin_len);
 
 void play_sound(char c);
 void play_something();
 void parse_byte(char c);
+void stop_sound();
+char timestamp;
+char current_note=0;
+char previous_note=0;
+char velocity=1;
+char stopped_note;
 int main()
 {
+	
+	/*I think that I need another thread: one
+	to play the notes and the other to gets the characters
+	from the serial port,otherwise I cannot stop the notes.*/
+	
 	//taskes as input directly without pressing enter
 	struct termios t;
 	tcgetattr(STDIN_FILENO,&t);
@@ -82,17 +101,7 @@ int main()
 		modificare 	
 	*/
 	Player::instance().init();
-	/*
-	for(;;) {
-		Player::instance().play(do2_sound);
-		Player::instance().play(re2_sound);
-		Player::instance().play(mi2_sound);
-		Player::instance().play(fa2_sound);
-		Player::instance().play(sol2_sound);
-		Player::instance().play(la2_sound);
-		Player::instance().play(si2_sound);
-		Player::instance().play(do3_sound);
-	}*/
+	//endless loop to get the bytes
 	for(;;) {
 		parse_byte(getchar());
 	}
@@ -101,19 +110,34 @@ int main()
 }
 
 void parse_byte(char c) {
-	if((c & 0b10010000)==0x90) {
-		play_sound(getchar());
-		//skip velocity byte
-		getchar();
-	} else if((c & 0b10000000)==0x80) {
+	//don't care about the channel
+	if(c==0x90) {
+		current_note=getchar();
+		velocity=getchar();
+		if(velocity==0 && previous_note==current_note)
+			stop_sound();	
+		else 
+			play_sound(current_note);
+		//don't actually know where this statement should be placed
+		previous_note=current_note;
+	} else if(c==0x80) {
 		//stop sound ???
+		stopped_note=getchar();
 		getchar();
-		getchar();
+		if(stopped_note==current_note)
+			stop_sound();
 	}
+	//THIS DOES NOT WORK AND DON'T KNOW WHY
+	//handles the timestamp:one or two bytes
+	//TODO:add the case in which the timestamp exceeds FF 7F
+	//timestamp=getchar();
+	//if(timestamp>=0x81)
+	//	getchar();
+	//maybe here 
 }
-
-void play_something() {
-	Player::instance().play(do2_sound);
+void stop_sound() {
+	//TODO:reproduce an empty sound
+	Player::instance().play(no_sound);
 }
 /*
 	simple function that reproduce some notes based
@@ -164,6 +188,15 @@ void play_sound(char c) {
 			break;
 		case 60:
 			Player::instance().play(do3_sound);
+			break;
+		case 61:
+			Player::instance().play(do3d_sound);
+			break;
+		case 62:
+			Player::instance().play(re3_sound);
+			break;
+		case 63:
+			Player::instance().play(re3d_sound);
 			break;
 	}
 }
