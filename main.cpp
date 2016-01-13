@@ -8,7 +8,6 @@
 	orange->PB11-
 */
 #include "player.h"
-#include "sad_trombone.h"
 #include <sys/types.h>
 #include <termios.h>
 #include <sys/stat.h>
@@ -18,6 +17,7 @@
 #include <list>
 #include <stdexcept>
 #include <miosix.h>
+/*
 #include"02do2#.h"
 #include"01do2.h"
 #include"08sol2.h"
@@ -30,11 +30,12 @@
 #include"10la2.h"
 #include"11la2#.h"
 #include"12si2.h"
+*/
 #include"13do3.h"
 #include"14do3#.h"
 #include"15re3.h"
-#include"16re3#.h"
-#include"no_sound.h"
+//#include"16re3#.h"
+//#include"emptySound.h"
 #include <pthread.h>
 /*
 	scaricare audacity. 
@@ -50,7 +51,7 @@
 	nel buffer ci sono livelli di tensione,e  li costruisce piano piano
 	
 */
-ADPCMSound sound(sad_trombone_bin,sad_trombone_bin_len);
+/*
 ADPCMSound do2_sound(__01do2_bin,__01do2_bin_len);
 ADPCMSound do2d_sound(__02do2__bin,__02do2__bin_len);
 ADPCMSound re2_sound(__03re2_bin,__03re2_bin_len);
@@ -62,12 +63,12 @@ ADPCMSound sol2_sound(__08sol2_bin,__08sol2_bin_len);
 ADPCMSound sol2d_sound(__09sol2__bin,__09sol2__bin_len);
 ADPCMSound la2_sound(__10la2_bin,__10la2_bin_len);
 ADPCMSound la2d_sound(__11la2__bin,__11la2__bin_len);
-ADPCMSound si2_sound(__12si2_bin,__12si2_bin_len);
+ADPCMSound si2_sound(__12si2_bin,__12si2_bin_len);*/
 ADPCMSound do3_sound(__13do3_bin,__13do3_bin_len);
 ADPCMSound do3d_sound(__14do3__bin,__14do3__bin_len);
 ADPCMSound re3_sound(__15re3_bin,__15re3_bin_len);
-ADPCMSound re3d_sound(__16re3__bin,__16re3__bin_len);
-ADPCMSound empty_sound(no_sound_bin,no_sound_bin_len);
+//ADPCMSound re3d_sound(__16re3__bin,__16re3__bin_len);
+//ADPCMSound empty_sound(no_sound_bin,no_sound_bin_len);
 
 pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
 /*
@@ -78,14 +79,16 @@ pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
 	pass to it a piece of the MIDI file. Then I parse
 	it.
 */
+//current note to play
+char current_note=0;
 void* play_sound(void* argv) {
 	
 	switch(current_note) {
-		case 0:
+		/*case 0:
 			//empty sound
 			Player::instance().play(empty_sound);
-			break;
-		case 48:
+			break;*/
+		/*case 48:
 			Player::instance().play(do2_sound);
 			break;
 		case 49:
@@ -120,7 +123,7 @@ void* play_sound(void* argv) {
 			break;
 		case 59:
 			Player::instance().play(si2_sound);
-			break;
+			break;*/
 		case 60:
 			Player::instance().play(do3_sound);
 			break;
@@ -130,17 +133,15 @@ void* play_sound(void* argv) {
 		case 62:
 			Player::instance().play(re3_sound);
 			break;
-		case 63:
+		/*case 63:
 			Player::instance().play(re3d_sound);
-			break;
+			break;*/
 	}
 }
 void parse_byte(char c);
 void stop_sound();
 void handle_end();
 char timestamp;
-//current note to play
-char current_note=0;
 /*another thread to play the sound*/
 
 /*integer for the note and a mutex and a thread*/
@@ -195,11 +196,6 @@ void parse_byte(char c) {
 		getchar();getchar();
 	} 		
 }
-void stop_sound() {
-	//TODO:reproduce an empty sound
-	Player::instance().play(no_sound);
-}
-
 void handle_end() {
 	//stop the player,maybe we can do something else..
 	Player::instance().stop();
