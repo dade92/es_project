@@ -5,7 +5,7 @@
 	red->VDD
 	black->GND
 	yellow->PB10
-	orange->PB11
+	orange->PB11-
 */
 #include "player.h"
 #include "sad_trombone.h"
@@ -35,6 +35,7 @@
 #include"15re3.h"
 #include"16re3#.h"
 #include"no_sound.h"
+#include <pthread.h>
 /*
 	scaricare audacity. 
 	convertire in un header il wav.istruzioni nel convert.cpp (terraneo l'ha testato con noi).
@@ -66,79 +67,9 @@ ADPCMSound do3_sound(__13do3_bin,__13do3_bin_len);
 ADPCMSound do3d_sound(__14do3__bin,__14do3__bin_len);
 ADPCMSound re3_sound(__15re3_bin,__15re3_bin_len);
 ADPCMSound re3d_sound(__16re3__bin,__16re3__bin_len);
-ADPCMSound no_sound(no_sound_bin,no_sound_bin_len);
+ADPCMSound empty_sound(no_sound_bin,no_sound_bin_len);
 
-void play_sound(char c);
-void play_something();
-void parse_byte(char c);
-void stop_sound();
-char timestamp;
-char current_note=0;
-char previous_note=0;
-char velocity=1;
-char stopped_note;
-int main()
-{
-	
-	/*I think that I need another thread: one
-	to play the notes and the other to gets the characters
-	from the serial port,otherwise I cannot stop the notes.*/
-	
-	//taskes as input directly without pressing enter
-	struct termios t;
-	tcgetattr(STDIN_FILENO,&t);
-	t.c_lflag &= ~(ISIG | ICANON | ECHO);
-	tcsetattr(STDIN_FILENO,TCSANOW,&t);
-	//codifica molto semplice, lossy, codifica un 4 bit ogni nota
-	//passa le note
-
-	/*
-		instanziare diversi oggetti ognuno con una nota diversa
-		e riprodurli 
-	*/	
-	/*
-		generare .h di un suono.
-		modificare 	
-	*/
-	Player::instance().init();
-	//endless loop to get the bytes
-	for(;;) {
-		parse_byte(getchar());
-	}
-	Player::instance().stop();
-
-}
-
-void parse_byte(char c) {
-	//don't care about the channel
-	if(c==0x90) {
-		current_note=getchar();
-		velocity=getchar();
-		if(velocity==0 && previous_note==current_note)
-			stop_sound();	
-		else 
-			play_sound(current_note);
-		//don't actually know where this statement should be placed
-		previous_note=current_note;
-	} else if(c==0x80) {
-		//stop sound ???
-		stopped_note=getchar();
-		getchar();
-		if(stopped_note==current_note)
-			stop_sound();
-	}
-	//THIS DOES NOT WORK AND DON'T KNOW WHY
-	//handles the timestamp:one or two bytes
-	//TODO:add the case in which the timestamp exceeds FF 7F
-	//timestamp=getchar();
-	//if(timestamp>=0x81)
-	//	getchar();
-	//maybe here 
-}
-void stop_sound() {
-	//TODO:reproduce an empty sound
-	Player::instance().play(no_sound);
-}
+pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
 /*
 	simple function that reproduce some notes based
 	on their name (C=DO,D=RE,A=la,F=fa ecc..)
@@ -147,9 +78,13 @@ void stop_sound() {
 	pass to it a piece of the MIDI file. Then I parse
 	it.
 */
-/*usage=use the second line of the qwerty:a=do(C). s=re(D). d=mi(E). etc..*/
-void play_sound(char c) {
-	switch(c) {
+void* play_sound(void* argv) {
+	
+	switch(current_note) {
+		case 0:
+			//empty sound
+			Player::instance().play(empty_sound);
+			break;
 		case 48:
 			Player::instance().play(do2_sound);
 			break;
@@ -199,4 +134,73 @@ void play_sound(char c) {
 			Player::instance().play(re3d_sound);
 			break;
 	}
+}
+void parse_byte(char c);
+void stop_sound();
+void handle_end();
+char timestamp;
+//current note to play
+char current_note=0;
+/*another thread to play the sound*/
+
+/*integer for the note and a mutex and a thread*/
+int main()
+{
+	
+	/*I think that I need another thread: one
+	to play the notes and the other to gets the characters
+	from the serial port,otherwise I cannot stop the notes.*/
+	
+	//taskes as input directly without pressing enter
+	struct termios t;
+	tcgetattr(STDIN_FILENO,&t);
+	t.c_lflag &= ~(ISIG | ICANON | ECHO);
+	tcsetattr(STDIN_FILENO,TCSANOW,&t);
+
+	Player::instance().init();
+	//player thread
+	pthread_t player;
+	pthread_create(&player,NULL,play_sound,NULL);
+	//endless loop to get the bytes
+	
+	for(;;)	parse_byte(getchar());
+	pthread_join(player,NULL);
+
+}
+
+void parse_byte(char c) {
+	char note,velocity;
+	//don't care about the channel
+	if((c & 0b10010000)==0x90) {
+		note=getchar();
+		velocity=getchar();
+		//can be optimized by checking if velocity!=0
+		if(velocity!=0) {
+			//stop the sound:set the current note as 0
+			pthread_mutex_lock(&mutex);
+			current_note=note;
+			pthread_mutex_unlock(&mutex);
+		}	
+		else {
+			//set the current note
+			pthread_mutex_lock(&mutex);
+			current_note=0;
+			pthread_mutex_unlock(&mutex);
+		}//lock the mutex and set a variable
+		//don't actually know where this statement should be placed
+	} else if((c & 0b10000000)==0x80) {
+		pthread_mutex_lock(&mutex);
+		current_note=0;
+		pthread_mutex_unlock(&mutex);
+		getchar();getchar();
+	} 		
+}
+void stop_sound() {
+	//TODO:reproduce an empty sound
+	Player::instance().play(no_sound);
+}
+
+void handle_end() {
+	//stop the player,maybe we can do something else..
+	Player::instance().stop();
 }
