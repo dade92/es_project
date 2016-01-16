@@ -17,7 +17,6 @@
 #include <list>
 #include <stdexcept>
 #include <miosix.h>
-/*
 #include"02do2#.h"
 #include"01do2.h"
 #include"08sol2.h"
@@ -30,28 +29,19 @@
 #include"10la2.h"
 #include"11la2#.h"
 #include"12si2.h"
-*/
 #include"13do3.h"
 #include"14do3#.h"
 #include"15re3.h"
-//#include"16re3#.h"
-//#include"emptySound.h"
+#include"16re3#.h"
+#include"13do3Croma.h"
+#include"13do3Semicroma.h"
+#include"13do3Semiminima.h"
+#include"00pauseCroma.h"
+#include"00pauseSemicroma.h"
+#include"00pauseSemiminima.h"
 #include <pthread.h>
-/*
-	scaricare audacity. 
-	convertire in un header il wav.istruzioni nel convert.cpp (terraneo l'ha testato con noi).
-	includere l'header creato
-	instanziare una nuova classe ADPCM
-	modificare il metodo play
-	File vanno convertiti da audacity,non so il perchè
-*/
-/*
-	note sono forme d'onda. se registro ho l'elenco per punti
-	della forma d'onda.
-	nel buffer ci sono livelli di tensione,e  li costruisce piano piano
-	
-*/
-/*
+
+
 ADPCMSound do2_sound(__01do2_bin,__01do2_bin_len);
 ADPCMSound do2d_sound(__02do2__bin,__02do2__bin_len);
 ADPCMSound re2_sound(__03re2_bin,__03re2_bin_len);
@@ -63,14 +53,19 @@ ADPCMSound sol2_sound(__08sol2_bin,__08sol2_bin_len);
 ADPCMSound sol2d_sound(__09sol2__bin,__09sol2__bin_len);
 ADPCMSound la2_sound(__10la2_bin,__10la2_bin_len);
 ADPCMSound la2d_sound(__11la2__bin,__11la2__bin_len);
-ADPCMSound si2_sound(__12si2_bin,__12si2_bin_len);*/
-ADPCMSound do3_sound(__13do3_bin,__13do3_bin_len);
+ADPCMSound si2_sound(__12si2_bin,__12si2_bin_len);
+ADPCMSound do3Croma_sound(__13do3Croma_bin,__13do3Croma_bin_len);
+ADPCMSound do3Semicroma_sound(__13do3Semicroma_bin,__13do3Semicroma_bin_len);
+ADPCMSound do3Semiminima_sound(__13do3Semiminima_bin,__13do3Semiminima_bin_len);
+ADPCMSound pauseCroma_sound(__00pauseCroma_bin,__00pauseCroma_bin_len);
+ADPCMSound pauseSemicroma_sound(__00pauseSemicroma_bin,__00pauseSemicroma_bin_len);
+ADPCMSound pauseSemiminima_sound(__00pauseSemiminima_bin,__00pauseSemiminima_bin_len);
 ADPCMSound do3d_sound(__14do3__bin,__14do3__bin_len);
 ADPCMSound re3_sound(__15re3_bin,__15re3_bin_len);
-//ADPCMSound re3d_sound(__16re3__bin,__16re3__bin_len);
-//ADPCMSound empty_sound(no_sound_bin,no_sound_bin_len);
+ADPCMSound re3d_sound(__16re3__bin,__16re3__bin_len);
 
 pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t ack=PTHREAD_COND_INITIALIZER;
 /*
 	simple function that reproduce some notes based
 	on their name (C=DO,D=RE,A=la,F=fa ecc..)
@@ -79,16 +74,37 @@ pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
 	pass to it a piece of the MIDI file. Then I parse
 	it.
 */
-//current note to play
+//current note to play:initialized with 0 (=empty_sound)
 char current_note=0;
+bool producer=true;
+char timestamp=-1;
+//length of the note
+ 
 void* play_sound(void* argv) {
-	
-	switch(current_note) {
-		/*case 0:
+	char note,ts;
+	for(;;) {
+		pthread_mutex_lock(&mutex);
+		while(producer) pthread_cond_wait(&ack,&mutex);
+		note=current_note;
+		ts=timestamp;
+		printf("consumer:note:%c,timestamp:%c",note,timestamp);
+		switch(note) {
+		case 0:
 			//empty sound
-			Player::instance().play(empty_sound);
-			break;*/
-		/*case 48:
+			//choose the correct time
+			switch(ts) {
+				case 1:
+					Player::instance().play(pauseSemiminima_sound);
+					break;
+				case 2:
+					Player::instance().play(pauseCroma_sound);
+					break;
+				case 3:
+					Player::instance().play(pauseSemicroma_sound);
+					break;
+			}
+			break;
+		case 48:
 			Player::instance().play(do2_sound);
 			break;
 		case 49:
@@ -123,9 +139,20 @@ void* play_sound(void* argv) {
 			break;
 		case 59:
 			Player::instance().play(si2_sound);
-			break;*/
+			break;
 		case 60:
-			Player::instance().play(do3_sound);
+			//choose the correct time
+			switch(ts) {
+				case 1:
+					Player::instance().play(do3Semiminima_sound);
+					break;
+				case 2:
+					Player::instance().play(do3Croma_sound);
+					break;
+				case 3:
+					Player::instance().play(do3Semicroma_sound);
+					break;
+			}
 			break;
 		case 61:
 			Player::instance().play(do3d_sound);
@@ -133,15 +160,17 @@ void* play_sound(void* argv) {
 		case 62:
 			Player::instance().play(re3_sound);
 			break;
-		/*case 63:
+		case 63:
 			Player::instance().play(re3d_sound);
-			break;*/
+			break;
+		}
+		producer=true;
+		//signals the producer
+		pthread_cond_signal(&ack);
+		pthread_mutex_unlock(&mutex);
 	}
 }
 void parse_byte(char c);
-void stop_sound();
-void handle_end();
-char timestamp;
 /*another thread to play the sound*/
 
 /*integer for the note and a mutex and a thread*/
@@ -173,30 +202,34 @@ void parse_byte(char c) {
 	char note,velocity;
 	//don't care about the channel
 	if((c & 0b10010000)==0x90) {
+		/*when I set the note I'm already in the 0 case=>no reproduction*/
+		pthread_mutex_lock(&mutex);
+		while(!producer) pthread_cond_wait(&ack,&mutex);
 		note=getchar();
 		velocity=getchar();
-		//can be optimized by checking if velocity!=0
-		if(velocity!=0) {
-			//stop the sound:set the current note as 0
-			pthread_mutex_lock(&mutex);
-			current_note=note;
-			pthread_mutex_unlock(&mutex);
-		}	
-		else {
-			//set the current note
-			pthread_mutex_lock(&mutex);
-			current_note=0;
-			pthread_mutex_unlock(&mutex);
-		}//lock the mutex and set a variable
-		//don't actually know where this statement should be placed
+		//set the note to be played
+			if(velocity==0)
+				current_note=0;
+			else
+				current_note=note;	
+			//gets the timestamp
+			if(getchar()>=0x81) {
+				if(getchar()>0x71)	
+					timestamp=1;
+				else
+					timestamp=2;
+			} else
+				timestamp=3;
+			producer=false;
+			printf("producer:note:%c,timestamp:%c",note,timestamp);
+			pthread_cond_signal(&ack);
+			pthread_mutex_unlock(&mutex);	
+		/*in order to stop the note I set a boolean variable*/
+		//lock the mutex and set a variable
 	} else if((c & 0b10000000)==0x80) {
 		pthread_mutex_lock(&mutex);
 		current_note=0;
 		pthread_mutex_unlock(&mutex);
 		getchar();getchar();
-	} 		
-}
-void handle_end() {
-	//stop the player,maybe we can do something else..
-	Player::instance().stop();
+	}
 }
