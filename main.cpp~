@@ -17,23 +17,6 @@
 #include <list>
 #include <stdexcept>
 #include <miosix.h>
-
-#include"00pauseSemiminima.h"
-#include"00pauseCroma.h"
-#include"00pauseSemicroma.h"
-
-#include"16mib3Semiminima.h"
-#include"16mib3Croma.h"
-#include"16mib3Semicroma.h"
-
-#include"20sol3Semiminima.h"
-#include"20sol3Croma.h"
-#include"20sol3Semicroma.h"
-
-#include"23sib3Semiminima.h"
-#include"23sib3Croma.h"
-#include"23sib3Semicroma.h"
-
 /*
 #include"02do2#.h"
 #include"01do2.h"
@@ -47,13 +30,13 @@
 #include"10la2.h"
 #include"11la2#.h"
 #include"12si2.h"
+*/
 #include"13do3.h"
 #include"14do3#.h"
 #include"15re3.h"
-#include"16re3#.h"
-#include"emptySound.h"
+//#include"16re3#.h"
+//#include"emptySound.h"
 #include <pthread.h>
-*/
 /*
 	scaricare audacity. 
 	convertire in un header il wav.istruzioni nel convert.cpp (terraneo l'ha testato con noi).
@@ -68,23 +51,6 @@
 	nel buffer ci sono livelli di tensione,e  li costruisce piano piano
 	
 */
-
-ADPCMSound pauseSemiminima_sound(__00pauseSemiminima_bin,__00pauseSemiminima_bin_len);
-ADPCMSound pauseCroma_sound(__00pauseCroma_bin,__00pauseCroma_bin_len);
-ADPCMSound pauseSemicroma_sound(__00pauseSemicroma_bin,__00pauseSemicroma_bin_len);
-
-ADPCMSound mib3Semiminima_sound(__16mib3Semiminima_bin,__16mib3Semiminima_bin_len);
-ADPCMSound mib3Croma_sound(__16mib3Croma_bin,__16mib3Croma_bin_len);
-ADPCMSound mib3Semicroma_sound(__16mib3Semicroma_bin,__16mib3Semicroma_bin_len);
-
-ADPCMSound sol3Semiminima_sound(__20sol3Semiminima_bin,__20sol3Semiminima_bin_len);
-ADPCMSound sol3Croma_sound(__20sol3Croma_bin,__20sol3Croma_bin_len);
-ADPCMSound sol3Semicroma_sound(__20sol3Semicroma_bin,__20sol3Semicroma_bin_len);
-
-ADPCMSound sib3Semiminima_sound(__23sib3Semiminima_bin,__23sib3Semiminima_bin_len);
-ADPCMSound sib3Croma_sound(__23sib3Croma_bin,__23sib3Croma_bin_len);
-ADPCMSound sib3Semicroma_sound(__23sib3Semicroma_bin,__23sib3Semicroma_bin_len);
-
 /*
 ADPCMSound do2_sound(__01do2_bin,__01do2_bin_len);
 ADPCMSound do2d_sound(__02do2__bin,__02do2__bin_len);
@@ -97,13 +63,12 @@ ADPCMSound sol2_sound(__08sol2_bin,__08sol2_bin_len);
 ADPCMSound sol2d_sound(__09sol2__bin,__09sol2__bin_len);
 ADPCMSound la2_sound(__10la2_bin,__10la2_bin_len);
 ADPCMSound la2d_sound(__11la2__bin,__11la2__bin_len);
-ADPCMSound si2_sound(__12si2_bin,__12si2_bin_len);
+ADPCMSound si2_sound(__12si2_bin,__12si2_bin_len);*/
 ADPCMSound do3_sound(__13do3_bin,__13do3_bin_len);
 ADPCMSound do3d_sound(__14do3__bin,__14do3__bin_len);
 ADPCMSound re3_sound(__15re3_bin,__15re3_bin_len);
-ADPCMSound re3d_sound(__16re3__bin,__16re3__bin_len);
-ADPCMSound empty_sound(no_sound_bin,no_sound_bin_len);
-*/
+//ADPCMSound re3d_sound(__16re3__bin,__16re3__bin_len);
+//ADPCMSound empty_sound(no_sound_bin,no_sound_bin_len);
 
 pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
 /*
@@ -119,12 +84,11 @@ char current_note=0;
 void* play_sound(void* argv) {
 	
 	switch(current_note) {
-		/*
-		case 0:
+		/*case 0:
 			//empty sound
 			Player::instance().play(empty_sound);
-			break;
-		case 48:
+			break;*/
+		/*case 48:
 			Player::instance().play(do2_sound);
 			break;
 		case 49:
@@ -159,7 +123,7 @@ void* play_sound(void* argv) {
 			break;
 		case 59:
 			Player::instance().play(si2_sound);
-			break;
+			break;*/
 		case 60:
 			Player::instance().play(do3_sound);
 			break;
@@ -169,10 +133,10 @@ void* play_sound(void* argv) {
 		case 62:
 			Player::instance().play(re3_sound);
 			break;
-		case 63:
+		/*case 63:
 			Player::instance().play(re3d_sound);
-			break;
-	}*/
+			break;*/
+	}
 }
 void parse_byte(char c);
 void stop_sound();
