@@ -153,6 +153,7 @@ pthread_cond_t ack=PTHREAD_COND_INITIALIZER;
 char current_note=0;
 bool producer=true;
 char timestamp=-1;
+void play_note(char note,char ts);
 //length of the note
  
 void* play_sound(void* argv) {
@@ -188,19 +189,6 @@ void* play_sound(void* argv) {
 					break;
 				case 3:
 					Player::instance().play(mib3Semicroma_sound);
-					break;
-			}
-			break;
-		case 66:
-			switch(ts) {
-				case 1:
-					Player::instance().play(mi3Semiminima_sound);
-					break;
-				case 2:
-					Player::instance().play(mi3Croma_sound);
-					break;
-				case 3:
-					Player::instance().play(mi3Semicroma_sound);
 					break;
 			}
 			break;
@@ -390,21 +378,13 @@ int main()
 	t.c_lflag &= ~(ISIG | ICANON | ECHO);
 	tcsetattr(STDIN_FILENO,TCSANOW,&t);
 	Player::instance().init();
-	for(;;) {
-	Player::instance().play(sol4Semiminima_sound);
-	Player::instance().play(pauseSemiminima_sound);
-	Player::instance().play(sol4Croma_sound);
-	Player::instance().play(pauseCroma_sound);
-	Player::instance().play(sol4Semicroma_sound);
-	Player::instance().play(pauseSemicroma_sound);
-	}
 
 	//player thread
 	pthread_t player;
 	pthread_create(&player,NULL,play_sound,NULL);
 	//endless loop to get the bytes
 	
-	//for(;;)	parse_byte(getchar());
+	for(;;)	parse_byte(getchar());
 	pthread_join(player,NULL);
 }
 
