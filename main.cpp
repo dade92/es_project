@@ -82,7 +82,7 @@
 #include"32sol4Semiminima.h"
 #include"32sol4Croma.h"
 #include"32sol4Semicroma.h"
-
+/*notes*/
 ADPCMSound pauseSemiminima_sound(__00pauseSemiminima_bin,__00pauseSemiminima_bin_len);
 ADPCMSound pauseCroma_sound(__00pauseCroma_bin,__00pauseCroma_bin_len);
 ADPCMSound pauseSemicroma_sound(__00pauseSemicroma_bin,__00pauseSemicroma_bin_len);
@@ -146,13 +146,13 @@ ADPCMSound solb4Semicroma_sound(__31solb4Semicroma_bin,__31solb4Semicroma_bin_le
 ADPCMSound sol4Semiminima_sound(__32sol4Semiminima_bin,__32sol4Semiminima_bin_len);
 ADPCMSound sol4Croma_sound(__32sol4Croma_bin,__32sol4Croma_bin_len);
 ADPCMSound sol4Semicroma_sound(__32sol4Semicroma_bin,__32sol4Semicroma_bin_len);
-
+//concurrency control by mutex and condition variables
 pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t ack=PTHREAD_COND_INITIALIZER;
-
+//shared variables between threads
 char current_note=0;
-bool producer=true;
 char timestamp=-1;
+bool producer=true;
 void play_note(char note,char ts);
 //length of the note
  
@@ -163,7 +163,10 @@ void* play_sound(void* argv) {
 		while(producer) pthread_cond_wait(&ack,&mutex);
 		note=current_note;
 		ts=timestamp;
-		//printf("consumer:note:%c,timestamp:%c",note,timestamp);
+		producer=true;
+		//signals the producer
+		pthread_cond_signal(&ack);
+		pthread_mutex_unlock(&mutex);
 		switch(note) {
 		case 0:
 			//empty sound
@@ -189,6 +192,19 @@ void* play_sound(void* argv) {
 					break;
 				case 3:
 					Player::instance().play(mib3Semicroma_sound);
+					break;
+			}
+			break;
+		case 66:
+			switch(ts) {
+				case 1:
+					Player::instance().play(solb3Semiminima_sound);
+					break;
+				case 2:
+					Player::instance().play(solb3Croma_sound);
+					break;
+				case 3:
+					Player::instance().play(solb3Semicroma_sound);
 					break;
 			}
 			break;
@@ -362,10 +378,6 @@ void* play_sound(void* argv) {
 			}
 			break;
 		}
-		producer=true;
-		//signals the producer
-		pthread_cond_signal(&ack);
-		pthread_mutex_unlock(&mutex);
 	}
 }
 
@@ -388,34 +400,46 @@ int main()
 	pthread_join(player,NULL);
 }
 
-void parse_byte(char c) {
-	char note,velocity;
+void parse_byte(char c) {	
+	char note,velocity,ts;
 	//don't care about the channel
-	if((c & 0b10010000)==0x90) {
-		/*when I set the note I'm already in the 0 case=>no reproduction*/
+	if((c)==0x90) {
+		note=getchar();
+		velocity=getchar();
+		ts=getchar();
 		pthread_mutex_lock(&mutex);
 		//waits the consumer to play the note
 		while(!producer) pthread_cond_wait(&ack,&mutex);
-		note=getchar();
-		velocity=getchar();
-		//set the note to be played
-			if(velocity==0) {
-				current_note=0;	
-			}
-			else
-				current_note=note;	
-			//gets the timestamp
-			if(getchar()>=0x80) {
-				if(getchar()>=0x5C)	
-					timestamp=1;
-				else
-					timestamp=2;
+		//if it's a note
+		if(velocity!=0) {			
+			if(ts==0x83) {
+				timestamp=1;
+			} else if(ts==0x81) {
+				timestamp=2;
 			} else
 				timestamp=3;
-			producer=false;
-			//printf("producer:note:%c,timestamp:%c",note,timestamp);
-			pthread_cond_signal(&ack);
-			pthread_mutex_unlock(&mutex);	
+			current_note=note;
+		} 
+		//otherwise it's a pause
+		else {
+			if(ts==0x82) {
+				timestamp=1;
+			} else if(ts==0x81) {
+				timestamp=2;
+			} else if(ts==0x80)
+				timestamp=3;
+			else {
+				//skip the small pause
+				printf("aaaa");
+				pthread_mutex_unlock(&mutex);
+				return;
+			}
+			current_note=0;
+		}
+		printf("%c%c",velocity,ts+10);
+		producer=false;
+		pthread_cond_signal(&ack);
+		pthread_mutex_unlock(&mutex);	
 		/*in order to stop the note I set a boolean variable*/
 		//lock the mutex and set a variable
 	} else if((c & 0b10000000)==0x80) {
