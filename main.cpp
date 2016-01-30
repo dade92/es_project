@@ -415,7 +415,7 @@ void parse_byte2(char c) {
 	if(c==0x90) {
 		pthread_mutex_lock(&mutex);
 		//waits the consumer to play the note
-		while(!producer) pthread_cond_wait(&ack,&mutex);
+		//while(!producer) pthread_cond_wait(&ack,&mutex);
 		note=getchar();
 		velocity=getchar();
 		//ts=getchar();
@@ -447,7 +447,7 @@ void parse_byte2(char c) {
 		}
 		producer=false;
 		//signals the producer
-		pthread_cond_signal(&ack);
+		//pthread_cond_signal(&ack);
 		pthread_mutex_unlock(&mutex);
 	}
 }
@@ -456,11 +456,11 @@ void* test_play(void* argv) {
 	for(;;) {
 		pthread_mutex_lock(&mutex);
 		//waits the consumer to play the note
-		while(producer) pthread_cond_wait(&ack,&mutex);
+		//while(producer) pthread_cond_wait(&ack,&mutex);
 		note=current_note;
 		producer=true;
 		//signals the producer
-		pthread_cond_signal(&ack);
+		//pthread_cond_signal(&ack);
 		pthread_mutex_unlock(&mutex);
 			switch(note) {
 				case 0:
