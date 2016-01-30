@@ -18,7 +18,6 @@
 #include <stdexcept>
 #include <miosix.h>
 #include <pthread.h>
-
 #include"00pauseSemiminima.h"
 #include"00pauseCroma.h"
 #include"00pauseSemicroma.h"
@@ -151,14 +150,25 @@ pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t ack=PTHREAD_COND_INITIALIZER;
 //shared variables between threads
 char current_note=0;
-char timestamp=-1;
+char timestamp=3;
 bool producer=true;
-void play_note(char note,char ts);
-//length of the note
- 
+int file_index=0;
+
+void parse_byte2(char c);
+void* test_play(void *argv);
+void parse_byte(char c);
+char mygetchar();
+
+const char midi_file[]={
+	0x90, 0x43, 0x32, 0x81, 0x5C, 0x90, 0x43, 0x00, 0x82, 0x04, 
+	0x90, 0x43, 0x32, 0x81, 0x5C, 0x90, 0x43, 0x00, 0x82, 0x04, 0x90, 0x43, 0x32, 0x81, 
+	0x5C, 0x90, 0x43, 0x00, 0x82, 0x04, 0x90, 0x3F, 0x32, 0x81, 0x5C, 0x90, 0x3F, 0x00, 
+	0x81, 0x0C, 0x90, 0x46, 0x32, 0x64, 0x90, 0x46, 0x00, 0x14,
+	0x90, 0x43, 0x32, 0x81, 0x5C, 0x90, 0x43, 0x00, 0x82, 0x04};
+
 void* play_sound(void* argv) {
-	char note,ts;
 	for(;;) {
+		char note,ts;
 		pthread_mutex_lock(&mutex);
 		while(producer) pthread_cond_wait(&ack,&mutex);
 		note=current_note;
@@ -381,29 +391,140 @@ void* play_sound(void* argv) {
 	}
 }
 
-void parse_byte(char c);
-
 int main()
 {
 	struct termios t;
 	tcgetattr(STDIN_FILENO,&t);
 	t.c_lflag &= ~(ISIG | ICANON | ECHO);
 	tcsetattr(STDIN_FILENO,TCSANOW,&t);
+		
 	Player::instance().init();
-
+	
 	//player thread
 	pthread_t player;
-	pthread_create(&player,NULL,play_sound,NULL);
+	pthread_create(&player,NULL,test_play,NULL);
 	//endless loop to get the bytes
-	
-	for(;;)	parse_byte(getchar());
+
+	for(;;)	{
+		parse_byte2(getchar());	
+	}
 	pthread_join(player,NULL);
 }
+void parse_byte2(char c) {
+	char note,velocity,ts;
+	if(c==0x90) {
+		pthread_mutex_lock(&mutex);
+		//waits the consumer to play the note
+		while(!producer) pthread_cond_wait(&ack,&mutex);
+		note=getchar();
+		velocity=getchar();
+		//ts=getchar();
+		if(velocity==0) {
+			
+			current_note=0;
+			/*if(ts==0x83) {
+				timestamp=1;
+			} else if(ts==0x82) {
+				timestamp=2;
+			} else if(ts==0x81) {
+				timestamp=3;
+			}
+			else {
+				//skip the small pause
+				pthread_mutex_unlock(&mutex);
+				return;
+			}*/	
+		}
+		else {
+			current_note=note;
+			/*if(ts==0x83) {
+				timestamp=1;
+			} else if(ts==0x81) {
+				timestamp=2;
+			} else if(ts==0x64) {
+				timestamp=3;	
+			}*/
+		}
+		producer=false;
+		//signals the producer
+		pthread_cond_signal(&ack);
+		pthread_mutex_unlock(&mutex);
+	}
+}
+void* test_play(void* argv) {
+	char note;
+	for(;;) {
+		pthread_mutex_lock(&mutex);
+		//waits the consumer to play the note
+		while(producer) pthread_cond_wait(&ack,&mutex);
+		note=current_note;
+		producer=true;
+		//signals the producer
+		pthread_cond_signal(&ack);
+		pthread_mutex_unlock(&mutex);
+			switch(note) {
+				case 0:
+					Player::instance().play(pauseSemicroma_sound);
+					break;
+				case 63:
+					Player::instance().play(mib3Semicroma_sound);
+					break;
+				case 66:
+					Player::instance().play(solb3Semicroma_sound);
+					break;
+				case 67:
+					Player::instance().play(sol3Semicroma_sound);
+					break;
+				case 68:
+					Player::instance().play(lab3Semicroma_sound);
+					break;
+				case 69:
+					Player::instance().play(la3Semicroma_sound);
+					break;
+				case 70:
+					Player::instance().play(sib3Semicroma_sound);
+					break;
+				case 71:
+					Player::instance().play(si3Semicroma_sound);
+					break;
+				case 72:
+					Player::instance().play(do4Semicroma_sound);
+					break;
+				case 73:
+					Player::instance().play(reb4Semicroma_sound);
+					break;
+				case 74:
+					Player::instance().play(re4Semicroma_sound);
+					break;
+				case 75:
+					Player::instance().play(mib4Semicroma_sound);
+					break;
+				case 76:
+					Player::instance().play(mi4Semicroma_sound);
+					break;
+				case 77:
+					Player::instance().play(fa4Semicroma_sound);
+					break;
+				case 78:
+					Player::instance().play(solb4Semicroma_sound);
+					break;
+				case 79:
+					Player::instance().play(sol4Semicroma_sound);
+					break;
+		}
+	}
+}
 
-void parse_byte(char c) {	
+char mygetchar() {
+	char c=midi_file[file_index];
+	file_index+=1;
+	return c;
+}
+
+void parse_byte(char c) {						
 	char note,velocity,ts;
 	//don't care about the channel
-	if((c)==0x90) {
+	if((c & 0b10010000)==0x90) {
 		note=getchar();
 		velocity=getchar();
 		ts=getchar();
@@ -416,36 +537,30 @@ void parse_byte(char c) {
 				timestamp=1;
 			} else if(ts==0x81) {
 				timestamp=2;
-			} else
-				timestamp=3;
+			} else if(ts==0x64) {
+				timestamp=3;	
+			}	
 			current_note=note;
 		} 
 		//otherwise it's a pause
 		else {
-			if(ts==0x82) {
+			if(ts==0x83) {
 				timestamp=1;
-			} else if(ts==0x81) {
+			} else if(ts==0x82) {
 				timestamp=2;
-			} else if(ts==0x80)
+			} else if(ts==0x81)
 				timestamp=3;
 			else {
 				//skip the small pause
-				printf("aaaa");
 				pthread_mutex_unlock(&mutex);
 				return;
 			}
 			current_note=0;
 		}
-		printf("%c%c",velocity,ts+10);
 		producer=false;
 		pthread_cond_signal(&ack);
 		pthread_mutex_unlock(&mutex);	
 		/*in order to stop the note I set a boolean variable*/
 		//lock the mutex and set a variable
-	} else if((c & 0b10000000)==0x80) {
-		pthread_mutex_lock(&mutex);
-		current_note=0;
-		pthread_mutex_unlock(&mutex);
-		getchar();getchar();
-	}
+	} 
 }
