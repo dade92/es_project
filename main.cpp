@@ -1,10 +1,3 @@
-/*
-	For the serial: 
-	red->VDD
-	black->GND
-	yellow->PB10
-	orange->PB11-
-*/
 #include "player.h"
 #include <termios.h>
 #include <cstdio>
@@ -80,7 +73,7 @@ void parse_byte(char c) {
 		pthread_mutex_unlock(&mutex);
 	}
 	//note pause
-	 else if((c & 0b10000000)==0x80) current_note=0;	 
+	 else if((c & 0b10000000)==0x80) current_note=0;
 }
 void* play_sound(void* argv) {
 	char note;
@@ -93,54 +86,54 @@ void* play_sound(void* argv) {
 		previous_note=current_note;
 		pthread_mutex_unlock(&mutex);
 		switch(note) {
-				case 0:
-					Player::instance().play(pauseSemicroma_sound);
-					break;
-				case 63:
-					Player::instance().play(mib3Semicroma_sound);
-					break;
-				case 66:
-					Player::instance().play(solb3Semicroma_sound);
-					break;
-				case 67:
-					Player::instance().play(sol3Semicroma_sound);
-					break;
-				case 68:
-					Player::instance().play(lab3Semicroma_sound);
-					break;
-				case 69:
-					Player::instance().play(la3Semicroma_sound);
-					break;
-				case 70:
-					Player::instance().play(sib3Semicroma_sound);
-					break;
-				case 71:
-					Player::instance().play(si3Semicroma_sound);
-					break;
-				case 72:
-					Player::instance().play(do4Semicroma_sound);
-					break;
-				case 73:
-					Player::instance().play(reb4Semicroma_sound);
-					break;
-				case 74:
-					Player::instance().play(re4Semicroma_sound);
-					break;
-				case 75:
-					Player::instance().play(mib4Semicroma_sound);
-					break;
-				case 76:
-					Player::instance().play(mi4Semicroma_sound);
-					break;
-				case 77:
-					Player::instance().play(fa4Semicroma_sound);
-					break;
-				case 78:
-					Player::instance().play(solb4Semicroma_sound);
-					break;
-				case 79:
-					Player::instance().play(sol4Semicroma_sound);
-					break;
+			case 0:
+				Player::instance().play(pauseSemicroma_sound);
+				break;
+			case 63:
+				Player::instance().play(mib3Semicroma_sound);
+				break;
+			case 66:
+				Player::instance().play(solb3Semicroma_sound);
+				break;
+			case 67:
+				Player::instance().play(sol3Semicroma_sound);
+				break;
+			case 68:
+				Player::instance().play(lab3Semicroma_sound);
+				break;
+			case 69:
+				Player::instance().play(la3Semicroma_sound);
+				break;
+			case 70:
+				Player::instance().play(sib3Semicroma_sound);
+				break;
+			case 71:
+				Player::instance().play(si3Semicroma_sound);
+				break;
+			case 72:
+				Player::instance().play(do4Semicroma_sound);
+				break;
+			case 73:
+				Player::instance().play(reb4Semicroma_sound);
+				break;
+			case 74:
+				Player::instance().play(re4Semicroma_sound);
+				break;
+			case 75:
+				Player::instance().play(mib4Semicroma_sound);
+				break;
+			case 76:
+				Player::instance().play(mi4Semicroma_sound);
+				break;
+			case 77:
+				Player::instance().play(fa4Semicroma_sound);
+				break;
+			case 78:
+				Player::instance().play(solb4Semicroma_sound);
+				break;
+			case 79:
+				Player::instance().play(sol4Semicroma_sound);
+				break;
 		}
 	}
 }
