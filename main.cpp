@@ -5,7 +5,9 @@
 #include <pthread.h>
 //note header files
 #include"00pauseSemicroma.h"
+#include"13do3Semicroma.h"
 #include"16mib3Semicroma.h"
+#include"17mi3Semicroma.h"
 #include"19solb3Semicroma.h"
 #include"20sol3Semicroma.h"
 #include"21lab3Semicroma.h"
@@ -20,9 +22,13 @@
 #include"30fa4Semicroma.h"
 #include"31solb4Semicroma.h"
 #include"32sol4Semicroma.h"
+#include"34la4Semicroma.h"
+#include"37do5Semicroma.h"
 //notes
 ADPCMSound pauseSemicroma_sound(__00pauseSemicroma_bin,__00pauseSemicroma_bin_len);
+ADPCMSound do3Semicroma_sound(__13do3Semicroma_bin,__13do3Semicroma_bin_len);
 ADPCMSound mib3Semicroma_sound(__16mib3Semicroma_bin,__16mib3Semicroma_bin_len);
+ADPCMSound mi3Semicroma_sound(__17mi3Semicroma_bin,__17mi3Semicroma_bin_len);
 ADPCMSound solb3Semicroma_sound(__19solb3Semicroma_bin,__19solb3Semicroma_bin_len);
 ADPCMSound sol3Semicroma_sound(__20sol3Semicroma_bin,__20sol3Semicroma_bin_len);
 ADPCMSound lab3Semicroma_sound(__21lab3Semicroma_bin,__21lab3Semicroma_bin_len);
@@ -37,6 +43,8 @@ ADPCMSound mi4Semicroma_sound(__29mi4Semicroma_bin,__29mi4Semicroma_bin_len);
 ADPCMSound fa4Semicroma_sound(__30fa4Semicroma_bin,__30fa4Semicroma_bin_len);
 ADPCMSound solb4Semicroma_sound(__31solb4Semicroma_bin,__31solb4Semicroma_bin_len);
 ADPCMSound sol4Semicroma_sound(__32sol4Semicroma_bin,__32sol4Semicroma_bin_len);
+ADPCMSound la4Semicroma_sound(__34la4Semicroma_bin,__34la4Semicroma_bin_len);
+ADPCMSound do5Semicroma_sound(__37do5Semicroma_bin,__37do5Semicroma_bin_len);
 //concurrency controlled by mutex
 pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
 //shared variables between threads
