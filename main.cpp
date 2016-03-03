@@ -71,7 +71,7 @@ int main()
 void parse_byte(char c) {
 	char note,velocity;
 	//note reproduction
-	if((c & 0b10010000)==0x90) {
+	if((c & 0b11110000)==0x90) {
 		note=getchar();
 		velocity=getchar();
 		//atomic access to the shared variable
@@ -81,7 +81,7 @@ void parse_byte(char c) {
 		pthread_mutex_unlock(&mutex);
 	}
 	//note pause
-	 else if((c & 0b10000000)==0x80) current_note=0;
+	 else if((c & 0b11110000)==0x80) current_note=0;
 }
 void* play_sound(void* argv) {
 	char note;
@@ -97,8 +97,14 @@ void* play_sound(void* argv) {
 			case 0:
 				Player::instance().play(pauseSemicroma_sound);
 				break;
+			case 60:
+				Player::instance().play(do3Semicroma_sound);
+				break;
 			case 63:
 				Player::instance().play(mib3Semicroma_sound);
+				break;
+			case 64:
+				Player::instance().play(mi3Semicroma_sound);
 				break;
 			case 66:
 				Player::instance().play(solb3Semicroma_sound);
@@ -141,6 +147,12 @@ void* play_sound(void* argv) {
 				break;
 			case 79:
 				Player::instance().play(sol4Semicroma_sound);
+				break;
+			case 81:
+				Player::instance().play(la4Semicroma_sound);
+				break;
+			case 84:
+				Player::instance().play(do5Semicroma_sound);
 				break;
 		}
 	}
