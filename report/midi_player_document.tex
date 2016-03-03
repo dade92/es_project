@@ -71,13 +71,13 @@ Here we report the messages which we should take care of; the useful messages ar
 \section{Algorithm} \label{sec:algorithm}
 The algorithm (all written in C++) implements a simple producer-consumer pattern:there is a main thread that reads from the serial port each byte and sets the note to be played. Another thread takes care of playing the current note (previously set by the main thread).In practice, this is a producer-consumer pattern in which the producer reads bytes from the serial port and the consumer continuously play notes, reading from a one-byte buffer.
 
-\subsection{Preliminary steps}
+\subsection{Preliminary steps}\label{subsec:pre_steps}
 First we have to understand how to transfer bytes: we send it via the serial port of the board, but this requires some preliminary steps, in particular:
 \begin{itemize}
 	\item open a MIDI port (this passage seems to be done only on Windows).
 	\item open the MIDI file with a program that allows you to send it via a specific port; not all the programs allow this, for example by \textit{MidiOx}  you can send it via different output ports.
 	\item connect the MIDI port to the serial port:we did this by \textit{hairless-MIDI-serial},a simple software that allows to send a data stream over the serial port.
-	\item sample some notes and convert it in order to have a C-style header file which contains a kind of waveform of the notes.
+	\item sample some notes and convert it in order to have a C-style header file which contains a kind of waveform of the notes (more details in \ref{subsec:reading}).
 \end{itemize}
 Here there is a simple block diagram that shows how the communication happens: the MIDI player in our computer starts to reproduce the song sending midi messages to the midi port; then these messages are forwarded to the serial port thanks to the Hairless-midi-serial program. From the serial port are finally transferred to our board,that reads the bytes and plays notes.
  \begin{figure}[H]
@@ -87,7 +87,7 @@ Here there is a simple block diagram that shows how the communication happens: t
  \end{figure}
 Following the previous steps, we managed to transfer the bytes through the serial line and to obtain different header files,stored into the board, that contain an array of bytes that represents the waveform of a note. Now we are ready to play music thanks to our algorithm.
 
-\subsection{Reading from the serial}
+\subsection{Reading from the serial}\label{subsec:reading}
 The main thread reads from the serial port and waits for an event 0x9x (it is a kind of parser). When that specific byte is sent, reads the note, the velocity and stores this information in a buffer. The producer algorithm is reported below:
 \begin{lstlisting}
 void parse_byte(char c) {
@@ -143,12 +143,13 @@ void* play_sound(void* argv) {
 					Player::instance()
 					.play(solb3Semicroma_sound);
 					break;
+				//other switch cases
 				...
 			}
 		}
 }
 \end{lstlisting}
-The player continuously plays notes, reading from the shared buffer in a secure manner (thanks to the mutex). The consumer does not wait for the producer to store another note in the buffer, but plays the note once and then waits that the note is changed; in this way the rhythm of the song can be managed easily: when the current\_note is set, the note is played because the consumer enters in the for loop. But the second time the consumer enters in the loop, checks the current\_note variable and, if it's not changed, it set the note to be played to 0. In this way the note is played once, and the board gives a greater and more accurate timing.\newline
+The player continuously plays notes, reading from the shared buffer in a secure manner (thanks to the mutex). The consumer does not wait for the producer to store another note in the buffer, but plays the note once and then waits that the note is changed; in this way the rhythm of the song can be managed easily: when the current\_note is set, the note is played because the consumer enters in the for loop. But the second time the consumer enters in the loop, checks the current\_note variable and, if it's not changed, it sets the note to be played to 0. In this way the note is played once, and the board gives a greater and more accurate timing.\newline
 In order to pass the bytes to the peripheral, our player uses a custom Miosix class, \textit{Player}, that manages the transmission between our program and the DAC peripheral. Eventually, we have added only a subset of all the possible notes (the notes used to test the board and to show the final result); a more complete player would require all the possible notes, but this is simply a matter of storing in the board the array that represents the missing notes.
 %TODO:check this section
 \subsection{Known issues}
