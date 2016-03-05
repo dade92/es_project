@@ -46,7 +46,7 @@ There are two broad message categories:
 	\item[system message] system messages are non-MIDI data of various sorts consisting of a fixed prefix, type indicator, a length field, and actual event data. For example, this messages indicate what type of instrument is playing, or a change in the rhythm.
 	\item[channel message] consist of a delta time since the last message, and three bytes that can vary according to the specific type of message. For example, these bytes can represent the reproduction of a note, a pause, a control change ect...
 \end{description}
-In our project we focus our attention on channel-messages, that represent the real music, in particular on the \textbf{event 9x} (where x stands for whichever 4 bits), that indicates the reproduction of a note.
+In our project we focus our attention on channel-messages, that represent the real music, in particular on the \textbf{event 9x} (where x stands for any 4 bits), that indicates the reproduction of a note.
 
 \subsection{MIDI messages}
 Here we would like to underline some MIDI messages and explain a bit their structure. These messages are very important because, as already said, they represent the music; so in order to correctly play the notes a deep understanding of these messages is needed.\newline
@@ -61,10 +61,10 @@ Here we provide some more details about these fields:\newline
 	\item[note-number] the pitch of the note: these numbers starts from 0 (C-2) and linearly increase until 127 (G8). In this way,every note is uniquely identified by a number; this makes easy the recognition of the note.
 	\item[velocity] a measure of how rapidly and forcefully a key on a keyboard is pressed.
 \end{description}
-Here we report the messages which we should take care of; the useful messages are only two: the messages that indicates the reproduction of the note, and the messages that indicates the pause of a note.
+Here we report the messages which we should take care of; the useful messages are only two: the messages that indicate the reproduction of the note, and the messages that indicate the pause of a note.
 \begin{description} 
-	\item[event 9x]  as already mentioned, this message represents the reproduction of a note, or a pause if the velocity is equal to zero. The latter 4 bits represents the channel of the note.
-	\item[event 8x] this message represents instead the end of a note. The latter 4 bits represents the channel of the note.
+	\item[message 9x]  as already mentioned, this message represents the reproduction of a note, or a pause if the velocity is equal to zero. The latter 4 bits represent the channel of the note.
+	\item[message 8x] this message represents instead the end of a note. The latter 4 bits represent the channel of the note.
 \end{description}
 
 %TODO: check the code before deadline
@@ -106,13 +106,13 @@ void parse_byte(char c) {
 	else if((c & 0b11110000)==0x80) current_note=0;
 }
 \end{lstlisting}
-The function parse\_byte is called from the main function and takes as input a single byte: if this byte is 0x90 (or 91,92,..,9F), the program fetch the pitch, the velocity of the next event and locks the mutex in order to set the current note to be played. Instead, if it's a 0x80 (or 81,82,..,8F), the program locks the mutex, set the note to be played to zero (a pause) and unlocks the mutex.Please note that the algorithm does not care about the channel of the note: in fact the following lines:
+The function parse\_byte is called from the main function and takes as input a single byte (the first byte, as already said, represents the message type): if this byte is 0x90 (or 91,92,..,9F), the program fetches the pitch and the velocity of the next event and locks the mutex in order to set the current note to be played. Instead, if it's a 0x80 (or 81,82,..,8F), the program locks the mutex, set the note to be played to zero (a pause) and unlocks the mutex.Please note that the algorithm does not care about the channel of the note: in fact the following lines:
 \begin{lstlisting}
 	if((c & 0b11110000)==0x90)
 	...
 	else if((c & 0b11110000)==0x80)
 \end{lstlisting}
-masks the byte in order to discard the latter 4 bits.\newline
+mask the byte in order to discard the latter 4 bits.\newline
 Finally, the main thread set the shared variable current\_note and unlocks the mutex so the consumer can access the buffer.
 
 \subsection{Playing notes}
@@ -150,7 +150,7 @@ void* play_sound(void* argv) {
 }
 \end{lstlisting}
 The player continuously plays notes, reading from the shared buffer in a secure manner (thanks to the mutex). The consumer does not wait for the producer to store another note in the buffer, but plays the note once and then waits that the note is changed; in this way the rhythm of the song can be managed easily: when the current\_note is set, the note is played because the consumer enters in the for loop. But the second time the consumer enters in the loop, checks the current\_note variable and, if it's not changed, it sets the note to be played to 0. In this way the note is played once, and the board gives a greater and more accurate timing.\newline
-In order to pass the bytes to the peripheral, our player uses a custom Miosix class, \textit{Player}, that manages the transmission between our program and the DAC peripheral. Eventually, we have added only a subset of all the possible notes (the notes used to test the board and to show the final result); a more complete player would require all the possible notes, but this is simply a matter of storing in the board the array that represents the missing notes.
+In order to pass the bytes to the peripheral, our player uses a custom Miosix class, \textit{Player}, that manages the transmission between our program and the DAC peripheral taking as input a custom \textit{ADPCMSound} object that contains the bytes of the note. Eventually, we have added only a subset of all the possible notes (the notes used to test the board and to show the final result); a more complete player would require all the possible notes, but this is simply a matter of storing in the board the array that represents the missing notes.
 %TODO:check this section
 \subsection{Known issues}
 Here we report some issues that are present in our program; these issues are mainly due to the academic purpose of the project. That is, our goal was not to implement a real MIDI player but only to deal with problems studied only theoretically (such as producer-consumer pattern).
@@ -164,7 +164,7 @@ Here we report some issues that are present in our program; these issues are mai
 The entire code can be found in our github repository: \url{https://github.com/dade92/es_project}
 
 \section{Conclusions and further extensions}
-Using Miosix libraries, the algorithm can get bytes from the serial line and reproduce MIDI songs implementing a producer-consumer pattern: one thread gets the bytes representing notes, and the other one plays them continuously. In practice the algorithm "chooses" which notes (already stored in the flash memory) send to the DAC peripheral of the board. One improvement could be detect the different channels of the messages and plays different instruments (In fact our algorithm does not take care of which channel the message is referred to). 
+Using Miosix libraries, the algorithm can get bytes from the serial line and reproduce MIDI songs implementing a producer-consumer pattern: one thread gets the bytes representing notes, and the other one plays them continuously. In practice the algorithm "chooses" which notes (already stored in the flash memory) send to the DAC peripheral of the board. One improvement could be detect the different channels of the messages and play different instruments (In fact our algorithm does not take care of which channel the message is referred to). 
 
 \section{Used Software} \label{sec:used}
 \begin{description} 
@@ -175,7 +175,7 @@ Using Miosix libraries, the algorithm can get bytes from the serial line and rep
 	\item[Midi-ox] to reproduce the MIDI and send it to the MIDI port. Can be found at \url{http://www.midiox.com/}
 	\item[Hairless-midiserial] to interface the MIDI port with the serial port. Can be found at \url{http://projectgus.github.io/hairless-midiserial/}
 	\item[QSTlink2] to program the board.
-	\item[Audcacity] to produce the notes.
+	\item[Audacity] to produce the notes.
 	\item[Convert.exe] c++ written program to convert the .Wav files  of the notes into .h header files.
 	\item[Logic] used to generate MIDI files.
 \end{description}
