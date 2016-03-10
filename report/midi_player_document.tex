@@ -9,7 +9,7 @@
 \title{MIDI player}
 %TODO:change the date
 \date{15/03/2016}
-\author{Davide Botti,Cristiano Di Marco}
+\author{Davide Botti, Cristiano Di Marco}
 
 \begin{document}
 \maketitle
@@ -30,7 +30,7 @@
  	\caption{STM32f4}
  	\label{fig:STM32f4Discovery}
  \end{figure}
-In order to implement what is written further, you need a board, a program to send binaries into the board (like STLink), and a patched C compiler in order to compile for the ARM Cortex M4 (more details in the \ref{sec:used}th section).
+In order to implement what is written further, we need a board, a program to send binaries into the board (like STLink), and a patched C compiler in order to compile for the ARM Cortex M4 (more details in the \ref{sec:used}th section).
 \newpage
 
 \section{MIDI structure} \label{sec:structure}
@@ -40,13 +40,13 @@ One important thing (actually the most important) in order to implement a MIDI p
 	\item[body section] the body section consists of a series of MIDI events, such as the reproduction of a note, a pause, a change in time or a change of the instrument (so called meta-events). Actually this is the most important part, because here we can find all the notes that create the music.
 	\item[end section] this section simply indicates the end of the MIDI file, and is always composed of 4 bytes: \emph{00 FF 2F 00}.
 \end{description}
-As you can easily understand, the most important section is the body, where we can actually find the notes that we're going to play. In practice, a MIDI file is a sequence of \textbf{MIDI messages} that represent the real music;these messages will be sent by the MIDI reproducer to our board that will take care of playing notes. So our program should listen to these messages coming from the serial line and select the correct note to play.\newline 
+As it can easily understood, the most important section is the body, where we can actually find the notes that we're going to play. In practice, a MIDI file is a sequence of \textbf{MIDI messages} that represent the real music;these messages will be sent by the MIDI reproducer to our board that will take care of playing notes. So our program should listen to these messages coming from the serial line and select the correct note to play.\newline 
 There are two broad message categories: 
 \begin{description} 
 	\item[system message] system messages are non-MIDI data of various sorts consisting of a fixed prefix, type indicator, a length field, and actual event data. For example, this messages indicate what type of instrument is playing, or a change in the rhythm.
 	\item[channel message] consist of a delta time since the last message, and three bytes that can vary according to the specific type of message. For example, these bytes can represent the reproduction of a note, a pause, a control change ect...
 \end{description}
-In our project we focus our attention on channel-messages, that represent the real music, in particular on the \textbf{event 9x} (where x stands for any 4 bits), that indicates the reproduction of a note.
+In our project we focus our attention on channel-messages, that represent the real music, in particular on the \textbf{event 9x} (where x stands for any 4 bits, that correspond to all the 16 channels of the MIDI protocol), that indicates the reproduction of a note.
 
 \subsection{MIDI messages}
 Here we would like to underline some MIDI messages and explain a bit their structure. These messages are very important because, as already said, they represent the music; so in order to correctly play the notes a deep understanding of these messages is needed.\newline
@@ -77,7 +77,8 @@ First we have to understand how to transfer bytes: we send it via the serial por
 	\item open a MIDI port (this passage seems to be done only on Windows).
 	\item open the MIDI file with a program that allows you to send it via a specific port; not all the programs allow this, for example by \textit{MidiOx}  you can send it via different output ports.
 	\item connect the MIDI port to the serial port:we did this by \textit{hairless-MIDI-serial},a simple software that allows to send a data stream over the serial port.
-	\item sample some notes and convert it in order to have a C-style header file which contains a kind of waveform of the notes (more details in \ref{subsec:reading}).
+	\item generate the various notes (.wave files, with a predefined timbre) that correspond to all the notes that will be associated to the corresponding MIDI events 
+	\item convert the .wave files into RAW (header-less) 16 bit PCM files through the given convert.cpp program, in order to have a C-style header file which contains a kind of waveform of the notes (more details in \ref{subsec:playing}).
 \end{itemize}
 Here there is a simple block diagram that shows how the communication happens: the MIDI player in our computer starts to reproduce the song sending midi messages to the midi port; then these messages are forwarded to the serial port thanks to the Hairless-midi-serial program. From the serial port are finally transferred to our board,that reads the bytes and plays notes.
  \begin{figure}[H]
@@ -87,7 +88,7 @@ Here there is a simple block diagram that shows how the communication happens: t
  \end{figure}
 Following the previous steps, we managed to transfer the bytes through the serial line and to obtain different header files,stored into the board, that contain an array of bytes that represents the waveform of a note. Now we are ready to play music thanks to our algorithm.
 
-\subsection{Reading from the serial}\label{subsec:reading}
+\subsection{Reading from the serial (Producer)}\label{subsec:reading}
 The main thread reads from the serial port and waits for an event 0x9x (it is a kind of parser). When that specific byte is sent, reads the note, the velocity and stores this information in a buffer. The producer algorithm is reported below:
 \begin{lstlisting}
 void parse_byte(char c) {
@@ -106,7 +107,7 @@ void parse_byte(char c) {
 	else if((c & 0b11110000)==0x80) current_note=0;
 }
 \end{lstlisting}
-The function parse\_byte is called from the main function and takes as input a single byte (the first byte, as already said, represents the message type): if this byte is 0x90 (or 91,92,..,9F), the program fetches the pitch and the velocity of the next event and locks the mutex in order to set the current note to be played. Instead, if it's a 0x80 (or 81,82,..,8F), the program locks the mutex, set the note to be played to zero (a pause) and unlocks the mutex.Please note that the algorithm does not care about the channel of the note: in fact the following lines:
+The function parse\_byte is called from the main function and takes as input a single byte (the first byte, as already said, represents the message type): if this byte is 0x90 (or 91,92,..,9F), the program fetches the pitch and the velocity of the next event and locks the mutex in order to set the current note to be played. Instead, if it's either a 0x80 (or 81,82,..,8F) or a 0x90 event with velocity equal to 0, the program locks the mutex, set the note to be played to zero (a pause) and unlocks the mutex. Please note that the algorithm does not care about the channel of the note: in fact the following lines:
 \begin{lstlisting}
 	if((c & 0b11110000)==0x90)
 	...
@@ -115,8 +116,8 @@ The function parse\_byte is called from the main function and takes as input a s
 mask the byte in order to discard the latter 4 bits.\newline
 Finally, the main thread set the shared variable current\_note and unlocks the mutex so the consumer can access the buffer.
 
-\subsection{Playing notes}
-This is the core of the project.In order to play notes, knowing the pitch of the note, we stored in the flash memory of the board arrays that correspond to sampled notes produced with Audacity.These vectors are produced by a program, \textit{convert.exe}, that takes as input a .Wav file and returns a .h header C-style file, that contains the bytes of the notes.Then, we pass the array contained into these headers to a costructor that creates a custom object (\textit{ADPCMSound}, can be found in Miosix).This object represents the "sound" to be played.\newline
+\subsection{Playing notes (Consumer)}\label{subsec:playing}
+This is the core of the project.In order to play notes, knowing the pitch of the note, we stored in the flash memory of the board arrays that correspond to sampled notes produced with Audacity.These vectors are produced by a program, \textit{convert.exe}, that takes as input a .raw file and returns a .h header C-style file, that contains the bytes of the notes.Then, we pass the array contained into these headers to a costructor that creates a custom object (\textit{ADPCMSound}, can be found in Miosix).This object represents the "sound" to be played.\newline
 The player continuously checks which note it has to play (by a simple switch() statement inside an infinite for loop) and sends the corresponding bytes to the output DAC. Here is the code of our player:\newpage
 
 \begin{lstlisting}
@@ -155,16 +156,16 @@ In order to pass the bytes to the peripheral, our player uses a custom Miosix cl
 \subsection{Known issues}
 Here we report some issues that are present in our program; these issues are mainly due to the academic purpose of the project. That is, our goal was not to implement a real MIDI player but only to deal with problems studied only theoretically (such as producer-consumer pattern).
 \begin{description}
-	\item[instrument type] The player does not recognize the playing instrument: so all the notes have the same timbre (this can be easily fixed by checking the channel of the note, instead of masking it).
-	\item[note duration] The player plays a note that is very short, and then waits for the next. In order to play longer notes is necessary a modification to the code. Moreover, because of the notes have a fixed duration, very fast songs cannot be reproduced correctly. In practice we have a kind of "bottleneck" due to the finite duration of the notes.
-	\item[song speed] Because of the fixed length of our sampled notes, the player can reproduce only songs that have a minimum note length equal to our notes. In practice there is an upper limit due to the fixed length of our notes.
+	\item[instrument type] The player does not recognize the playing instrument: so all the notes have the same timbre (this can be easily fixed by checking the channel of the note and storing .h files that represent other types of instruments, instead of masking it).
+	\item[note duration] Every time the player receives a note event, it plays its predetermined, fixed note and then it waits for the next note event. In this way, we manage correctly the time of the MIDI song because for sure each note will be played at the time it arrives to the board.
+	\item[song speed] Because of the fixed duration of our sampled notes, the player can reproduce only songs that have a minimum note duration equal to our notes. In practice there is an upper limit due to the fixed duration of our notes.
 \end{description}
 
 \subsection{About the code}
 The entire code can be found in our github repository: \url{https://github.com/dade92/es_project}
 
 \section{Conclusions and further extensions}
-Using Miosix libraries, the algorithm can get bytes from the serial line and reproduce MIDI songs implementing a producer-consumer pattern: one thread gets the bytes representing notes, and the other one plays them continuously. In practice the algorithm "chooses" which notes (already stored in the flash memory) send to the DAC peripheral of the board. One improvement could be detect the different channels of the messages and play different instruments (In fact our algorithm does not take care of which channel the message is referred to). 
+Using Miosix libraries, the algorithm can get bytes from the serial line and reproduce MIDI songs implementing a producer-consumer pattern: one thread gets the bytes representing notes, and the other one plays them continuously. In practice the algorithm "chooses" which notes (already stored in the flash memory) send to the DAC peripheral of the board. Some improvements could be detect the different channels of the messages, play different instruments or manage in a different way the duration of the notes.
 
 \section{Used Software} \label{sec:used}
 \begin{description} 
@@ -177,7 +178,7 @@ Using Miosix libraries, the algorithm can get bytes from the serial line and rep
 	\item[QSTlink2] to program the board.
 	\item[Audacity] to produce the notes.
 	\item[Convert.exe] c++ written program to convert the .Wav files  of the notes into .h header files.
-	\item[Logic] used to generate MIDI files.
+	\item[Logic] used to generate MIDI files and the sounds.
 \end{description}
 
 \end{document}

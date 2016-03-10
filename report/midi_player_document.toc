@@ -3,8 +3,8 @@
 \contentsline {subsection}{\numberline {2.1}MIDI messages}{4}{subsection.2.1}
 \contentsline {section}{\numberline {3}Algorithm}{5}{section.3}
 \contentsline {subsection}{\numberline {3.1}Preliminary steps}{5}{subsection.3.1}
-\contentsline {subsection}{\numberline {3.2}Reading from the serial}{6}{subsection.3.2}
-\contentsline {subsection}{\numberline {3.3}Playing notes}{7}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.2}Reading from the serial (Producer)}{6}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Playing notes (Consumer)}{7}{subsection.3.3}
 \contentsline {subsection}{\numberline {3.4}Known issues}{9}{subsection.3.4}
 \contentsline {subsection}{\numberline {3.5}About the code}{9}{subsection.3.5}
 \contentsline {section}{\numberline {4}Conclusions and further extensions}{9}{section.4}
