@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2015.9.10)  10 MAR 2016 11:08
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2015.9.10)  10 MAR 2016 11:12
 entering extended mode
 **midi_player_document.tex
 (midi_player_document.tex
@@ -415,7 +415,7 @@ Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 184.
 Here is how much of TeX's memory you used:
  7231 strings out of 493673
  103994 string characters out of 3143963
- 204721 words of memory out of 3000000
+ 204735 words of memory out of 3000000
  10445 multiletter control sequences out of 15000+200000
  10449 words of font info for 38 fonts, out of 3000000 for 9000
  1025 hyphenation exceptions out of 8191
@@ -426,7 +426,7 @@ es/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX
  2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fon
 ts/type1/public/amsfonts/cm/cmti12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1
 /public/amsfonts/cm/cmtt12.pfb>
-Output written on midi_player_document.pdf (11 pages, 224436 bytes).
+Output written on midi_player_document.pdf (11 pages, 224452 bytes).
 PDF statistics:
  214 PDF objects out of 1000 (max. 8388607)
  75 named destinations out of 1000 (max. 500000)
