@@ -7,5 +7,5 @@
 \contentsline {subsection}{\numberline {3.3}Playing notes (Consumer)}{7}{subsection.3.3}
 \contentsline {subsection}{\numberline {3.4}Known issues}{9}{subsection.3.4}
 \contentsline {subsection}{\numberline {3.5}About the code}{9}{subsection.3.5}
-\contentsline {section}{\numberline {4}Conclusions and further extensions}{9}{section.4}
+\contentsline {section}{\numberline {4}Conclusions and further extensions}{10}{section.4}
 \contentsline {section}{\numberline {5}Used Software}{10}{section.5}

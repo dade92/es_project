@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2015.9.10)  10 MAR 2016 11:12
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2015.9.10)  16 MAR 2016 09:06
 entering extended mode
 **midi_player_document.tex
 (midi_player_document.tex
@@ -349,51 +349,51 @@ Underfull \hbox (badness 10000) in paragraph at lines 52--58
  []
 
 [4]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 77.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 76.
  ("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 77.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 76.
  [5]
 <Schema.jpg, id=94, 493.845pt x 107.65219pt>
 File: Schema.jpg Graphic file (type jpg)
  <use Schema.jpg>
-Package pdftex.def Info: Schema.jpg used on input line 85.
+Package pdftex.def Info: Schema.jpg used on input line 84.
 (pdftex.def)             Requested size: 312.00119pt x 68.01176pt.
  [6 <./Schema.jpg>] [7]
-Overfull \hbox (54.14923pt too wide) in paragraph at lines 130--131
-[][][][][][][][][][][][][] 
- []
-
-
-Overfull \hbox (18.89929pt too wide) in paragraph at lines 136--137
+Overfull \hbox (75.2992pt too wide) in paragraph at lines 135--136
 [][][][][][][][] 
  []
 
 
-Overfull \hbox (89.39917pt too wide) in paragraph at lines 137--138
+Overfull \hbox (145.79907pt too wide) in paragraph at lines 136--137
 [][][][][][][][][] 
  []
 
 
-Overfull \hbox (18.89929pt too wide) in paragraph at lines 140--141
+Overfull \hbox (75.2992pt too wide) in paragraph at lines 139--140
 [][][][][][][][] 
  []
 
 
-Overfull \hbox (82.34918pt too wide) in paragraph at lines 141--142
+Overfull \hbox (138.74908pt too wide) in paragraph at lines 140--141
 [][][][][][][][][] 
  []
 
 
-Overfull \hbox (18.89929pt too wide) in paragraph at lines 144--145
+Overfull \hbox (75.2992pt too wide) in paragraph at lines 143--144
 [][][][][][][][] 
  []
 
 
-Overfull \hbox (89.39917pt too wide) in paragraph at lines 145--146
+Overfull \hbox (145.79907pt too wide) in paragraph at lines 144--145
 [][][][][][][][][] 
+ []
+
+
+Overfull \hbox (32.99927pt too wide) in paragraph at lines 146--147
+[][][][][][][][][][] 
  []
 
 [8] [9]
@@ -413,22 +413,22 @@ Package rerunfilecheck Info: File `midi_player_document.out' has not changed.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 184.
  ) 
 Here is how much of TeX's memory you used:
- 7231 strings out of 493673
- 103994 string characters out of 3143963
+ 7232 strings out of 493673
+ 104009 string characters out of 3143963
  204735 words of memory out of 3000000
  10445 multiletter control sequences out of 15000+200000
  10449 words of font info for 38 fonts, out of 3000000 for 9000
  1025 hyphenation exceptions out of 8191
- 33i,11n,58p,704b,1750s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 33i,11n,58p,695b,1750s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Pr
 ogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Program Fil
 es/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Program Files/MiKTeX
  2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fon
 ts/type1/public/amsfonts/cm/cmti12.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1
 /public/amsfonts/cm/cmtt12.pfb>
-Output written on midi_player_document.pdf (11 pages, 224452 bytes).
+Output written on midi_player_document.pdf (11 pages, 224708 bytes).
 PDF statistics:
- 214 PDF objects out of 1000 (max. 8388607)
- 75 named destinations out of 1000 (max. 500000)
+ 215 PDF objects out of 1000 (max. 8388607)
+ 76 named destinations out of 1000 (max. 500000)
  99 words of extra memory for PDF output out of 10000 (max. 10000000)
 
